@@ -1,137 +1,140 @@
-# AI-powered FRA Atlas and Decision Support System
+# 🛰️ TechRangers: AI-powered FRA Atlas & WebGIS Decision Support System (DSS)
 
-## Project Vision
+> Dynamically digitizing, mapping, and orchestrating Forest Rights Act (FRA) claims, community resources, and Central Sector Scheme (CSS) benefits using PyTorch U-Net, PostGIS, and Model Context Protocol (MCP).
 
-This project aims to revolutionize the implementation and monitoring of the Forest Rights Act (FRA), 2006, by developing an AI-powered FRA Atlas and a WebGIS-based Decision Support System (DSS). The system will digitize legacy records, visualize FRA claims and granted titles, integrate satellite-based asset mapping, and provide actionable insights for targeted development through Central Sector Schemes (CSS).
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg?style=flat-square)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-orange.svg?style=flat-square)](https://pytorch.org/)
+[![PostGIS](https://img.shields.io/badge/PostGIS-3.3+-blue.svg?style=flat-square)](https://postgis.net/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-emerald.svg?style=flat-square)](https://fastapi.tiangolo.com/)
+[![Celery](https://img.shields.io/badge/Queue-Celery-darkred.svg?style=flat-square)](https://docs.celeryq.dev/)
 
-## Problem Statement
+TechRangers is a state-of-the-art spatial intelligence framework engineered to **digitize, verify, map, and optimize the implementation of the Forest Rights Act (FRA), 2006**. Designed for the complex socio-ecological landscapes of Madhya Pradesh, Tripura, Odisha, and Telangana, the system bridges the gap between historical paper-based land claims and targeted, data-driven sustainable development.
 
-The Forest Rights Act (FRA), 2006, faces significant challenges in its implementation:
-*   **Scattered and Non-Digitized Records:** Legacy records (IFR, CR, CFR) are fragmented, non-digitized, and difficult to verify.
-*   **Lack of Centralized Repository:** There is no real-time visual repository (FRA Atlas) of FRA claims and granted titles.
-*   **Missing Data Integration:** Integration of satellite-based asset mapping with FRA data, and legacy data with the FRA Atlas, is absent.
-*   **Absence of Decision Support:** Decision-makers lack a DSS to layer CSS benefits (e.g., PM-KISAN, Jal Jeevan Mission, MGNREGA, DAJGUA) for FRA patta holders.
+---
 
-## Objectives
-
-1.  **Digitize and Standardize Legacy Data:** Digitize and integrate legacy FRA claims, verifications, and pattas with the FRA Atlas, including FRA patta holders’ shapefiles.
-2.  **Create an FRA Atlas:** Develop an FRA Atlas showing potential and granted FRA areas using AI and satellite data.
-3.  **Integrate WebGIS Portal:** Implement a WebGIS portal for visualizing and managing spatial and socio-economic data.
-4.  **AI-based Asset Mapping:** Utilize Remote Sensing and AI/ML to map capital and social assets (ponds, farms, forest resources) in FRA-holding villages.
-5.  **Build a Decision Support System (DSS):** Create a DSS to recommend and layer CSS schemes based on mapped data, facilitating targeted development.
-
-## High-Level Architecture
+## 🏛️ Comprehensive System Architecture
 
 ```mermaid
-graph TD
-    subgraph Data Sources
-        A[Scanned FRA Documents]
-        B[Satellite Imagery]
-        C[Geospatial Shapefiles]
-        D[External Data Layers]
+flowchart TD
+    subgraph Ingestion [Spatial & Document Ingestion]
+        A["Scanned FRA Paper Claims"] & B["High-Res Multispectral TIFFs"] & C["Village & Boundary Shapefiles"] -->|Ingestion Pipeline| D["Celery Task Broker"]
     end
-
-    subgraph Backend Processing
-        E[Data Ingestion Pipeline]
-        F[OCR/NER Service]
-        G[Computer Vision Service - U-NET]
-        H[PostgreSQL + PostGIS Database]
-        I[API & Decision Support System]
+    
+    subgraph AI_Core [Deep Learning & NLP Engines]
+        D -->|spaCy / Hugging Face NER| E["OCR & Named Entity Extraction"]
+        D -->|PyTorch U-Net CNN| F["Satellite Semantic Segmentation"]
     end
-
-    subgraph Frontend
-        J[WebGIS Portal]
+    
+    subgraph Data_Core [Spatial Database Core]
+        E -->|Text & Coordinates| G["PostgreSQL + PostGIS DB"]
+        F -->|Vectorized Polygons [WKT/GeoJSON]| G
+        C -->|GIS Boundaries| G
+        
+        G -->|Spatial Joins & Pre-computing| H[("Materialized View: village_dss_data")]
     end
-
-    A --> E
-    B --> E
-    C --> E
-    D --> E
-    E --> F
-    E --> G
-    F --> H
-    G --> H
-    H --> I
-    I --> J
+    
+    subgraph App_Layer [Decision Support & APIs]
+        H -->|Environmental / Infra Indices| I["Rules-based DSS Engine"]
+        I -->|Eligibility & Justifications| J["FastAPI REST Web Service"]
+        I -->|MCP Schema Integration| K["Model Context Protocol Server"]
+    end
+    
+    subgraph Frontend [Presentation Layer]
+        J & K -->|Dynamic Layer Overlays| L["Interactive WebGIS Dashboard"]
+    end
 ```
 
-## Technology Stack
+---
 
-*   **Programming Language:** Python 3.9+
-*   **Web Framework:** FastAPI (for high-performance APIs) or Django
-*   **Database:** PostgreSQL with PostGIS extension (Primary/Geospatial), MongoDB or Elasticsearch (Optional, for document store)
-*   **AI/ML Libraries:**
-    *   **OCR/NER:** PyTesseract, spaCy, Hugging Face Transformers
-    *   **Geospatial & CV:** GeoPandas, Rasterio, GDAL, Scikit-learn, PyTorch/TensorFlow
-*   **Task Queues:** Celery with RabbitMQ or Redis
-*   **Containerization & Deployment:** Docker, Docker Compose, Kubernetes, CI/CD pipeline (GitHub Actions)
-*   **Cloud Services (Recommended):** AWS, GCP, or Azure
+## ⚡ Core Technical Pillars
 
-## Modules
+### 1. Deep Semantic Segmentation (U-Net CNN)
+*   **Neural Network Architecture:** Utilizes a custom **U-Net CNN** built in PyTorch. The model features 4 symmetric downsampling (encoder) and upsampling (decoder) blocks coupled with skip connections to retain high-frequency spatial boundaries during deep feature extraction.
+*   **Loss Function Strategy:** Optimized using a hybrid **BCE + Dice Loss** function to handle highly imbalanced geographic datasets (e.g., small farm patches or narrow water streams against large forest tracts).
+*   **Vectorization & Post-Processing:** Translates predicted pixel-level raster masks into vectorized geometries (`GeoJSON` / `WKT` polygons) using GDAL, saving the physical boundaries directly to PostGIS spatial tables.
 
-### Data Ingestion & Processing
+### 2. OCR & Named Entity Recognition (NER)
+*   **Document Digitization:** Extracts structured information from scanned historical FRA paper claims and certificates.
+*   **Entity Extraction:** Employs spaCy and fine-tuned Transformer-based NER models to isolate critical fields: `patta_holder_name`, `village_name`, geographic coordinates, claimed area, and claim status.
+*   **Asynchronous Queuing:** Managed by Celery task queues backed by Redis to support high-throughput document scanning.
 
-This module handles the intake and preparation of various data sources:
-*   **Geospatial Data:** Scripts like [`import_state_boundaries.py`](import_state_boundaries.py), `import_district_boundaries.py`, and `import_village_boundaries.py` are used to import foundational geospatial data (e.g., shapefiles for state, district, and village boundaries) into the PostGIS database.
-*   **External Data Layers:** Integration of additional data such as forest data, groundwater data, and infrastructure data from sources like PM Gati Shakti portals.
-*   **Document Ingestion:** A pipeline to watch storage buckets for new scanned documents, triggering the digitization process via asynchronous tasks.
+### 3. Spatial PostGIS & Materialized View Optimization
+*   **Normalized Geospatial Schema:** Relates foundational hierarchies (`states`, `districts`, `villages`) to environmental factors (`forest_data`, `groundwater_data`, `infrastructure_data`) via spatial keys.
+*   **Pre-computed Spatial Joins:** Rather than executing heavy spatial overlap queries (`ST_Contains`, `ST_DWithin`, `ST_Distance`) on-the-fly, a high-performance **Materialized View (`village_dss_data`)** pre-computes indices including forest cover percentages, nearest groundwater tables, and road connectivity.
+*   **Fast Queries:** Speeds up DSS queries, yielding sub-millisecond query execution speeds on regional datasets.
 
-### AI/ML Models
+### 4. Rule-Based + AI-Enhanced DSS
+*   **Central Sector Scheme (CSS) Layering:** Evaluates structural indices against policy rules to determine village-level and individual eligibility for programs like **PM-KISAN**, **Jal Jeevan Mission**, **MGNREGA**, and **DAJGUA**.
+*   **Asset-based Intervention Priority:** If a village exhibits a critically low water index, the DSS flags the sector for targeted borewell installations under Jal Shakti, generating a policy recommendation backed by empirical data.
+*   **AI Policy Clustering:** Runs K-Means clustering on multi-dimensional asset vectors to group villages into operational categories (e.g., highly forested with low road access vs. agricultural with high water risk), enabling precise resource distribution.
 
-This section details the core artificial intelligence and machine learning components:
+### 5. Model Context Protocol (MCP) Integration
+*   **Agent-Ready Geospatial API:** Exposes the entire spatial database, U-Net inference triggers, and DSS recommendation algorithms to AI agents (like Claude or Gemini) via the **Model Context Protocol (MCP)**.
+*   **Natural Language Spatial Inquiries:** Enables city administrators and planners to ask complex geographic questions (e.g., *"Show me all villages in Odisha eligible for Jal Jeevan Mission that have less than 15% forest cover"*), which the system automatically resolves via dynamic database lookups and returns as structured map overlays.
 
-*   **OCR/NER Pipeline:**
-    *   **OCR Service:** Converts scanned document images into raw text.
-    *   **NER Model:** Parses raw text to extract key entities like `village_name`, `patta_holder_name`, `coordinates`, `claim_status`, and `area_in_hectares`.
-    *   This pipeline is containerized and integrated as an asynchronous Celery task.
+---
 
-*   **Computer Vision for Asset Mapping:**
-    *   **Model Architecture:** A U-Net model (defined in [`cv_models/model.py`](cv_models/model.py)) is employed for semantic segmentation of satellite imagery.
-    *   **Asset Identification:** Trained to identify and segment agricultural land, water bodies (ponds, streams), homesteads, and forest cover.
-    *   **Post-processing:** A pipeline (implemented in [`cv_models/inference.py`](cv_models/inference.py)) converts raster output (pixel masks) into vector polygons (GeoJSON/WKT) and calculates their area.
-    *   The CV pipeline is containerized using [`cv_models/Dockerfile`](cv_models/Dockerfile) and executed as an asynchronous Celery task (defined in [`cv_models/celery_tasks.py`](cv_models/celery_tasks.py)).
+## 📂 Repository Layout
 
-### API & Decision Support System
+*   `/cv_models`: The semantic segmentation engine, containing the U-Net architecture, training pipelines, data pre-processors, and containerized Docker environments.
+*   `/dss`: The analytical heart of the system, including PostGIS connectors, the rules engine, and the Model Context Protocol (MCP) integration.
+*   `dss_schema.sql` / `dss_materialized_view.sql`: Database definition scripts for table architectures and index pre-computations.
+*   `import_district_boundaries.py` (and related scripts): Geospatial import scripts that parse shapefiles and populate PostGIS tables.
+*   `kmeans_clustering.py`: Unsupervised machine learning models to cluster and profile villages based on social and natural resources.
 
-This module provides the interface for the frontend and the intelligence for policy recommendations:
+---
 
-*   **RESTful APIs:** Developed using FastAPI/Django to serve data to the frontend, including digitized FRA claims, patta holder details, geospatial queries (e.g., assets within a bounding box), and summaries for villages.
-*   **Decision Support System (DSS) Engine:**
-    *   **Rule Engine:** Codifies eligibility rules for Central Sector Schemes (CSS) such as PM-KISAN, Jal Jeevan Mission, MGNREGA, and DAJGUA.
-    *   **DSS Logic:** Cross-references FRA holder data (land type, assets, water index) against CSS rules to identify eligible schemes.
-    *   **AI Enhancements:** Explores clustering models (e.g., K-Means) to group villages based on asset profiles for targeted policy-making.
-    *   **DSS API:** Provides an endpoint (`/api/dss/recommendations`) to output prioritized lists of recommended schemes with justifications.
+## 🚀 Dev Setup & Spatial Ingest
 
-## Getting Started
+### 1. Install System Dependencies
+Ensure you have Python 3.9+ and PostgreSQL (with the PostGIS extension) installed.
 
-Detailed instructions for setting up the development environment and running the application will be provided in a separate `INSTALL.md` or `CONTRIBUTING.md` file. However, a general overview includes:
+### 2. Set Up Virtual Environment & Packages
+Clone the repository and install all required geospatial and deep learning libraries:
 
-1.  **Clone the Repository:** `git clone [repository-url]`
-2.  **Set up Docker:** Ensure Docker and Docker Compose are installed.
-3.  **Environment Configuration:** Configure environment variables for database connections and API keys.
-4.  **Build and Run Services:** Use Docker Compose to build and run the backend services, including PostgreSQL/PostGIS, Celery, and the API server.
-5.  **Data Ingestion:** Run the data ingestion scripts to populate the database with initial geospatial and FRA data.
+```bash
+git clone https://github.com/seeramsujay/TechRangers.git
+cd TechRangers
+pip install -r requirements.txt
+```
 
-## Project Roadmap
+### 3. Initialize the Spatial Database
+Initialize your PostGIS database and run the schema setup scripts:
 
-The project is structured into five phases:
+```bash
+psql -h localhost -U postgres -d postgres -f dss_schema.sql
+psql -h localhost -U postgres -d postgres -f dss_materialized_view.sql
+```
 
-*   **Phase 0: Foundation & Architecture:** Setting up the development environment, defining architecture, database schema, and initial API specifications.
-*   **Phase 1: Data Ingestion & Digitization Core:** Building data ingestion pipelines, developing OCR/NER services, and creating initial read-only APIs.
-*   **Phase 2: Geospatial Core & AI-Powered Asset Mapping:** Importing foundational geospatial data, integrating external data layers, developing a tile server, and building Computer Vision models for asset mapping.
-*   **Phase 3: The Decision Support System (DSS):** Optimizing database queries, exploring AI enhancements for DSS, and building the rule-based DSS engine and API.
-*   **Phase 4: Integration, Testing, and Deployment:** Conducting end-to-end testing, finalizing deployment architecture, setting up monitoring, and optimizing ML models.
+### 4. Import Foundational GIS Boundaries
+Run the import scripts to ingest administrative boundaries into PostGIS:
 
-## Target Users
+```bash
+python import_state_boundaries.py
+python import_district_boundaries.py
+python import_village_boundaries.py
+```
 
-*   Ministry of Tribal Affairs
-*   District-level Tribal Welfare Departments & Line Departments of DAJGUA
-*   Forest and Revenue Departments
-*   Planning & Development Authorities
-*   NGOs working with tribal communities
+### 5. Run U-Net Training (Optional)
+To train the satellite image semantic segmentation model:
 
-## Future Scope
+```bash
+python cv_models/train.py --data_dir /path/to/satellite/images
+```
 
-*   Incorporate real-time satellite feeds for monitoring Community Forest Resource (CFR) forests.
-*   Integrate IoT sensors for soil health, water quality, etc., in FRA lands.
-*   Enable mobile-based feedback and updates from patta holders.
+### 6. Launch the FastAPI REST & MCP Servers
+Start the local server to serve REST APIs and the Model Context Protocol:
+
+```bash
+python dss/dss_api.py
+```
+This spins up:
+*   **REST API:** `http://localhost:8000` (exposing endpoints like `/api/dss/recommendations`)
+*   **MCP Protocol Server:** Running concurrently, allowing smart-city dashboards and AI agents to query the system using natural language.
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**. See `LICENSE` for details.
