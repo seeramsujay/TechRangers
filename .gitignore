@@ -1,1 +1,5 @@
 .roomodes
+
+__pycache__/
+*.pyc
+
