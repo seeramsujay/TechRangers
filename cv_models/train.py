@@ -1,11 +1,11 @@
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms
-import numpy as np
+from cv_models.data_preprocessing import (
+    SatelliteImageProcessor,  # Assuming this is ready
+)
 from cv_models.model import UNET
-from cv_models.data_preprocessing import SatelliteImageProcessor # Assuming this is ready
+from torch import nn, optim
+from torch.utils.data import DataLoader, Dataset
+
 
 # Placeholder for a custom dataset. In a real scenario, this would load processed tiles.
 class SatelliteDataset(Dataset):
@@ -35,6 +35,7 @@ class SatelliteDataset(Dataset):
 
         return image, mask
 
+
 def train_fn(loader, model, optimizer, loss_fn, scaler, device):
     loop = 0
     for batch_idx, (data, targets) in enumerate(loader):
@@ -56,6 +57,7 @@ def train_fn(loader, model, optimizer, loss_fn, scaler, device):
         if loop % 10 == 0:
             print(f"Loss after {loop} batches: {loss.item():.4f}")
 
+
 def get_metrics(loader, model, device, num_classes):
     # For multi-class, accuracy and Dice score need to be calculated per class or averaged.
     # This is a simplified version for overall accuracy.
@@ -66,10 +68,12 @@ def get_metrics(loader, model, device, num_classes):
     with torch.no_grad():
         for x, y in loader:
             x = x.to(device)
-            y = y.to(device) # y is now (N, H, W) with class indices
+            y = y.to(device)  # y is now (N, H, W) with class indices
 
-            predictions = model(x) # (N, num_classes, H, W)
-            predicted_masks = torch.argmax(predictions, dim=1) # (N, H, W) with class indices
+            predictions = model(x)  # (N, num_classes, H, W)
+            predicted_masks = torch.argmax(
+                predictions, dim=1
+            )  # (N, H, W) with class indices
 
             total_correct_pixels += (predicted_masks == y).sum().item()
             total_pixels += torch.numel(y)
@@ -80,39 +84,49 @@ def get_metrics(loader, model, device, num_classes):
     model.train()
     return accuracy
 
+
 def main():
     # Hyperparameters
     LEARNING_RATE = 1e-4
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     BATCH_SIZE = 16
     NUM_EPOCHS = 10
-    NUM_WORKERS = 2 # Adjust based on your system
+    NUM_WORKERS = 2  # Adjust based on your system
     IMAGE_HEIGHT = 256
     IMAGE_WIDTH = 256
     PIN_MEMORY = True
-    LOAD_MODEL = False # Set to True to resume training from a checkpoint
+    LOAD_MODEL = False  # Set to True to resume training from a checkpoint
 
     # Model, Loss, Optimizer
-    NUM_CLASSES = 5 # e.g., 4 asset classes + 1 background
+    NUM_CLASSES = 5  # e.g., 4 asset classes + 1 background
     model = UNET(in_channels=3, num_classes=NUM_CLASSES).to(DEVICE)
-    loss_fn = nn.CrossEntropyLoss() # For multi-class segmentation
+    loss_fn = nn.CrossEntropyLoss()  # For multi-class segmentation
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    scaler = torch.cuda.amp.GradScaler() # For mixed precision training
+    scaler = torch.cuda.amp.GradScaler()  # For mixed precision training
 
     # Data loading
     # Replace with your actual paths to satellite imagery and label files
     image_path = "path/to/your/training_satellite_image.tif"
-    label_path = "path/to/your/training_labels.geojson" # or .shp
+    label_path = "path/to/your/training_labels.geojson"  # or .shp
 
     print(f"Loading and preprocessing data from {image_path} and {label_path}...")
-    processor = SatelliteImageProcessor(image_path, label_path, tile_size=(IMAGE_HEIGHT, IMAGE_WIDTH))
+    processor = SatelliteImageProcessor(
+        image_path, label_path, tile_size=(IMAGE_HEIGHT, IMAGE_WIDTH)
+    )
     processed_images, processed_masks = processor.run_pipeline()
-    print(f"Finished preprocessing. Got {len(processed_images)} image tiles and {len(processed_masks)} mask tiles.")
-    print(f"Shape of first processed image: {processed_images[0].shape}, mask: {processed_masks[0].shape}")
+    print(
+        f"Finished preprocessing. Got {len(processed_images)} image tiles and {len(processed_masks)} mask tiles."
+    )
+    print(
+        f"Shape of first processed image: {processed_images[0].shape}, mask: {processed_masks[0].shape}"
+    )
 
     # Split data into training and validation sets
     split_idx = int(len(processed_images) * 0.8)
-    train_images, val_images = processed_images[:split_idx], processed_images[split_idx:]
+    train_images, val_images = (
+        processed_images[:split_idx],
+        processed_images[split_idx:],
+    )
     train_masks, val_masks = processed_masks[:split_idx], processed_masks[split_idx:]
 
     train_dataset = SatelliteDataset(train_images, train_masks)
@@ -137,9 +151,10 @@ def main():
     for epoch in range(NUM_EPOCHS):
         print(f"Epoch {epoch+1}/{NUM_EPOCHS}")
         train_fn(train_loader, model, optimizer, loss_fn, scaler, DEVICE)
-        
+
         # Evaluate on validation set
         get_metrics(val_loader, model, DEVICE, NUM_CLASSES)
+
 
 if __name__ == "__main__":
     main()
