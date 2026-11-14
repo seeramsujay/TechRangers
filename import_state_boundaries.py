@@ -1,5 +1,7 @@
-import geopandas as gpd
 import os
+
+import geopandas as gpd
+
 
 def import_state_boundaries(shapefile_path):
     """
@@ -22,10 +24,11 @@ def import_state_boundaries(shapefile_path):
         print(f"Error loading shapefile: {e}")
         return None
 
+
 if __name__ == "__main__":
     # Example usage: Replace with your actual shapefile path
     # You would typically get this path from a configuration or user input
-    state_shapefile = "data/geospatial/state_boundaries.shp" # Placeholder path
+    state_shapefile = "data/geospatial/state_boundaries.shp"  # Placeholder path
     print(f"Attempting to import state boundaries from: {state_shapefile}")
     imported_states = import_state_boundaries(state_shapefile)
     if imported_states is not None:

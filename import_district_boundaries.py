@@ -1,5 +1,7 @@
-import geopandas as gpd
 import os
+
+import geopandas as gpd
+
 
 def import_district_boundaries(shapefile_path):
     """
@@ -22,10 +24,11 @@ def import_district_boundaries(shapefile_path):
         print(f"Error loading shapefile: {e}")
         return None
 
+
 if __name__ == "__main__":
     # Example usage: Replace with your actual shapefile path
     # You would typically get this path from a configuration or user input
-    district_shapefile = "data/geospatial/district_boundaries.shp" # Placeholder path
+    district_shapefile = "data/geospatial/district_boundaries.shp"  # Placeholder path
     print(f"Attempting to import district boundaries from: {district_shapefile}")
     imported_districts = import_district_boundaries(district_shapefile)
     if imported_districts is not None:

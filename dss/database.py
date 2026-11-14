@@ -1,7 +1,9 @@
 import os
+
+import numpy as np
 import psycopg2
 from psycopg2.extras import RealDictCursor
-import numpy as np
+
 
 def get_db_connection():
     """Establishes a database connection and returns it."""
@@ -9,9 +11,10 @@ def get_db_connection():
         host=os.getenv("DB_HOST", "localhost"),
         database=os.getenv("DB_NAME", "sih_dss"),
         user=os.getenv("DB_USER", "sih_user"),
-        password=os.getenv("DB_PASSWORD", "sih_password")
+        password=os.getenv("DB_PASSWORD", "sih_password"),
     )
     return conn
+
 
 def fetch_village_dss_data(village_id=None, patta_holder_id=None):
     """
@@ -24,14 +27,16 @@ def fetch_village_dss_data(village_id=None, patta_holder_id=None):
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
         if village_id:
-            cur.execute("SELECT * FROM village_dss_data WHERE village_id = %s", (village_id,))
+            cur.execute(
+                "SELECT * FROM village_dss_data WHERE village_id = %s", (village_id,)
+            )
         # elif patta_holder_id:
         #     # TODO: Implement logic to get village_id from patta_holder_id
         #     # For now, this path is not fully supported without patta_holder_data table
         #     raise NotImplementedError("Fetching by patta_holder_id is not yet implemented.")
         else:
             raise ValueError("Either village_id or patta_holder_id must be provided.")
-        
+
         data = cur.fetchone()
         cur.close()
         return data
@@ -42,13 +47,16 @@ def fetch_village_dss_data(village_id=None, patta_holder_id=None):
         if conn:
             conn.close()
 
+
 def fetch_eligibility_rules():
     """Fetches all eligibility rules from the database."""
     conn = None
     try:
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute("SELECT s.scheme_id, s.scheme_name, s.description, s.description_embedding, er.attribute, er.operator, er.value FROM eligibility_rules er JOIN schemes s ON er.scheme_id = s.scheme_id")
+        cur.execute(
+            "SELECT s.scheme_id, s.scheme_name, s.description, s.description_embedding, er.attribute, er.operator, er.value FROM eligibility_rules er JOIN schemes s ON er.scheme_id = s.scheme_id"
+        )
         rules = cur.fetchall()
         cur.close()
         return rules
@@ -59,6 +67,7 @@ def fetch_eligibility_rules():
         if conn:
             conn.close()
 
+
 def upsert_scheme_embedding(scheme_id: int, embedding: np.ndarray):
     """Inserts or updates a scheme's description embedding."""
     conn = None
@@ -67,7 +76,7 @@ def upsert_scheme_embedding(scheme_id: int, embedding: np.ndarray):
         cur = conn.cursor()
         cur.execute(
             "INSERT INTO schemes (scheme_id, description_embedding) VALUES (%s, %s) ON CONFLICT (scheme_id) DO UPDATE SET description_embedding = EXCLUDED.description_embedding",
-            (scheme_id, embedding.tolist())
+            (scheme_id, embedding.tolist()),
         )
         conn.commit()
         cur.close()
@@ -80,6 +89,7 @@ def upsert_scheme_embedding(scheme_id: int, embedding: np.ndarray):
     finally:
         if conn:
             conn.close()
+
 
 def find_similar_schemes(query_embedding: np.ndarray, limit: int = 5):
     """
@@ -94,7 +104,7 @@ def find_similar_schemes(query_embedding: np.ndarray, limit: int = 5):
         # Or use <=> for cosine distance directly (1 - cosine similarity)
         cur.execute(
             "SELECT scheme_id, scheme_name, description, description_embedding FROM schemes ORDER BY description_embedding <=> %s LIMIT %s",
-            (query_embedding.tolist(), limit)
+            (query_embedding.tolist(), limit),
         )
         schemes = cur.fetchall()
         cur.close()
